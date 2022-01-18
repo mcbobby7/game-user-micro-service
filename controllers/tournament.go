@@ -110,6 +110,7 @@ func GetTournaments() gin.HandlerFunc{
 		defer cancel()
 		if err!=nil{
 			c.JSON(http.StatusInternalServerError, gin.H{"error":"error occured while listing user items", "hasError": true})
+			return
 		}
 		var data []bson.M
 		if err = result.All(ctx, &data); err!=nil{

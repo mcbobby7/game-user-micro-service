@@ -51,12 +51,15 @@ func Signup()gin.HandlerFunc{
 
 		if err := c.BindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "hasError": true})
+			defer cancel()
 			return
+			
 		}
 
 		validationErr := validate.Struct(user)
 		if validationErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error":validationErr.Error(), "hasError": true})
+			defer cancel()
 			return
 		}
 
@@ -65,6 +68,7 @@ func Signup()gin.HandlerFunc{
 		if err != nil {
 			log.Panic(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error":"error occured while checking for the email", "hasError": true})
+			return
 		}
 
 		password := HashPassword(*user.Password)
@@ -75,10 +79,12 @@ func Signup()gin.HandlerFunc{
 		if err!= nil {
 			log.Panic(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error":"error occured while checking for the phone number", "hasError": true})
+			return
 		}
 
 		if count >0{
 			c.JSON(http.StatusInternalServerError, gin.H{"error":"this email or phone number already exists", "hasError": true})
+			return
 		}
 
 		user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
@@ -128,6 +134,7 @@ func Login() gin.HandlerFunc{
 
 		if foundUser.Email == nil{
 			c.JSON(http.StatusInternalServerError, gin.H{"error":"user not found", "hasError": true})
+			return
 		}
 		token, refreshToken, _ := helper.GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, *foundUser.User_type, foundUser.User_id)
 		helper.UpdateAllTokens(token, refreshToken, foundUser.User_id)
@@ -176,6 +183,7 @@ result,err := userCollection.Aggregate(ctx, mongo.Pipeline{
 defer cancel()
 if err!=nil{
 	c.JSON(http.StatusInternalServerError, gin.H{"error":"error occured while listing user items", "hasError": true})
+	return
 }
 var allusers []bson.M
 if err = result.All(ctx, &allusers); err!=nil{
