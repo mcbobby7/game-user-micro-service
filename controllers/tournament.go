@@ -43,6 +43,9 @@ func SaveTournament() gin.HandlerFunc{
 		tournament.ID = primitive.NewObjectID()
 		tournament.TournamentId = tournament.ID.Hex()
 		tournament.User_id = c.GetString("uid")
+		tournament.Active = false
+		tournament.IsDeleted = false
+		tournament.IsSuspended = false
 
 		resultInsertionNumber, insertErr := tournamentCollection.InsertOne(ctx, tournament)
 		if insertErr !=nil {
@@ -117,4 +120,97 @@ func GetTournaments() gin.HandlerFunc{
 			log.Fatal(err)
 		}
 		c.JSON(http.StatusOK, gin.H{"message": "request processed successfullt", "tournaments":data[0], "hasError": false})}
+}
+
+func UpdateTournament() gin.HandlerFunc{
+	return func(c *gin.Context){
+		id := c.Param("id")
+		primID, _ :=primitive.ObjectIDFromHex(id)
+
+		var tournament models.Tournament
+		if err := c.BindJSON(&tournament); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "hasError": true})
+			return
+		}
+
+		if err := helper.MatchUserIdToUid(c, tournament.User_id); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error":err.Error(), "hasError": true})
+			return
+		}
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+
+
+		filter := bson.M{"ID": primID}
+		set := bson.M{"$set": bson.M{"Name": tournament.Name, "GameName": tournament.GameName, "TournamentType": tournament.TournamentType, "Shuffle": tournament.Shuffle, "Team": tournament.Team, "TournamentMode": tournament.TournamentMode, "TournamentSize": tournament.TournamentSize}}
+		value, err := tournamentCollection.UpdateOne(ctx, filter, set)
+		defer cancel()
+		if err != nil{
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "hasError": true})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "request processed successfullt", "data": value, "tournament":id, "hasError": false})
+
+	}	
+}
+
+func DeleteTournament() gin.HandlerFunc{
+	return func(c *gin.Context){
+		id := c.Param("id")
+		primID, _ :=primitive.ObjectIDFromHex(id)
+
+		var tournament models.Tournament
+		if err := c.BindJSON(&tournament); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "hasError": true})
+			return
+		}
+
+		// if err := helper.MatchUserIdToUid(c, tournament.User_id); err != nil {
+		// 	c.JSON(http.StatusBadRequest, gin.H{"error":err.Error(), "hasError": true})
+		// 	return
+		// }
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+
+
+		filter := bson.M{"ID": primID}
+		set := bson.M{"$set": bson.M{"IsDeleted": true}}
+		value, err := tournamentCollection.UpdateOne(ctx, filter, set)
+		defer cancel()
+		if err != nil{
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "hasError": true})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "request processed successfullt", "data": value, "tournament":id, "hasError": false})
+
+	}	
+}
+
+func SuspendTournament() gin.HandlerFunc{
+	return func(c *gin.Context){
+		id := c.Param("id")
+		primID, _ :=primitive.ObjectIDFromHex(id)
+
+		var tournament models.Tournament
+		if err := c.BindJSON(&tournament); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "hasError": true})
+			return
+		}
+
+		// if err := helper.MatchUserIdToUid(c, tournament.User_id); err != nil {
+		// 	c.JSON(http.StatusBadRequest, gin.H{"error":err.Error(), "hasError": true})
+		// 	return
+		// }
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+
+
+		filter := bson.M{"ID": primID}
+		set := bson.M{"$set": bson.M{"IsSuspended": true}}
+		value, err := tournamentCollection.UpdateOne(ctx, filter, set)
+		defer cancel()
+		if err != nil{
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "hasError": true})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "request processed successfullt", "data": value, "tournament":id, "hasError": false})
+
+	}	
 }

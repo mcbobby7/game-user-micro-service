@@ -19,4 +19,6 @@ type User struct{
 	Created_at		time.Time				`json:"created_at"`
 	Updated_at		time.Time				`json:"updated_at"`
 	User_id			string					`json:"user_id"`
+	IsDeleted		bool					`json:"IsDeleted" validate:"required"`
+	IsSuspended		bool					`json:"IsSuspended" validate:"required"`
 }

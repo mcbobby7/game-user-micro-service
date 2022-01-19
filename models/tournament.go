@@ -20,4 +20,7 @@ type Tournament struct{
 	Updated_at		time.Time				`json:"Updated_at"`
 	TournamentId	string					`json:"TournamentId"`
 	User_id			string					`json:"User_id"`
+	Active			bool					`json:"Active" validate:"required"`
+	IsDeleted		bool					`json:"IsDeleted" validate:"required"`
+	IsSuspended		bool					`json:"IsSuspended" validate:"required"`
 }

@@ -5,11 +5,13 @@ import (
 	"os"
 
 	routes "github.com/Gameware/routes"
+	// "github.com/Gameware/docs"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
-func main(){
+func main(){	
+
 	err := godotenv.Load(".env")
 
 	if err != nil {
@@ -27,6 +29,7 @@ func main(){
 	routes.AuthRoutes(router)
 	routes.UserRoutes(router)
 	routes.TournamentRoutes(router)
+
 	
 	router.GET("/api-1", func(c *gin.Context){
 		c.JSON(200, gin.H{"success":"Access granted for api-1"})
